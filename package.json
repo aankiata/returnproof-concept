@@ -1,0 +1,31 @@
+{
+  "name": "returnproof-concept",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Lightweight, non-production product concept prototype. Synthetic data only. Not affiliated with Meesho.",
+  "scripts": {
+    "dev": "next dev --port 3100",
+    "build": "next build",
+    "start": "next start --port 3100",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "next": "16.4.2",
+    "react": "19.2.6",
+    "react-dom": "19.2.6"
+  },
+  "devDependencies": {
+    "@testing-library/react": "16.3.0",
+    "@testing-library/user-event": "14.6.1",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "jsdom": "26.1.0",
+    "typescript": "5.8.3",
+    "vitest": "5.0.5"
+  },
+  "engines": {
+    "node": ">=20.9.0"
+  }
+}

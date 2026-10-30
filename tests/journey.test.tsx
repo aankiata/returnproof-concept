@@ -2,37 +2,47 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { ConceptApp } from "../components/ConceptApp";
+import { defaultSupportMessage } from "../data/scenario";
 
 const ORDER_ID = "DEMO-OD-7Q2K-0001";
 
-// Words a customer should never see in this prototype. Engineering terms and unsupported conclusions.
+// Words a customer should never see in this prototype: engineering terms and unsupported conclusions.
 const FORBIDDEN = /reconcil|payload|json|ingest|\bR0\d\b|\bevent\b|rule set|verified|failed|failure|fraud|fault|blame|guarantee|ticket number/i;
 
 function allScreenText(): string {
   return document.body.textContent ?? "";
 }
 
+function messageBox(): HTMLTextAreaElement {
+  return screen.getByLabelText(/Your message to support/) as HTMLTextAreaElement;
+}
+
+async function openHelp(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getByRole("button", { name: "View return details" }));
+  await user.click(screen.getByRole("button", { name: "Get help with this return" }));
+}
+
 describe("ReturnProof concept: the primary journey", () => {
-  it("runs end to end with synthetic data, with back navigation and no network calls", async () => {
+  it("runs end to end with synthetic data, a review step, back navigation and no network calls", async () => {
     const fetchSpy = vi.spyOn(globalThis, "fetch");
     const user = userEvent.setup();
     render(<ConceptApp />);
 
-    // Screen 1: order details
+    // Order details
     expect(screen.getByRole("heading", { level: 1, name: "Order details" })).toBeTruthy();
     expect(screen.getByText("Printed Straight Kurti")).toBeTruthy();
     expect(screen.getByText(ORDER_ID)).toBeTruthy();
     expect(screen.getByText("Pickup pending")).toBeTruthy();
     await user.click(screen.getByRole("button", { name: "View return details" }));
 
-    // Screen 2: return timeline (default view)
+    // Return details: the timeline
     expect(screen.getByRole("heading", { level: 1, name: "Return details" })).toBeTruthy();
     const progress = screen.getByRole("list", { name: "Return progress" });
     expect(within(progress).getByText("Pickup activity recorded")).toBeTruthy();
     expect(within(progress).getByText("Awaiting confirmation")).toBeTruthy();
     expect(within(progress).getByText("In progress", { exact: false })).toBeTruthy();
 
-    // Screen 3: pickup status details, with honest wording and an expandable section
+    // Pickup details: the explanation and the expandable section
     await user.click(screen.getByRole("button", { name: "Pickup details" }));
     expect(screen.getByRole("heading", { name: "Pickup status details" })).toBeTruthy();
     expect(screen.getByText("Your pickup status hasn't updated yet.")).toBeTruthy();
@@ -46,31 +56,35 @@ describe("ReturnProof concept: the primary journey", () => {
     await user.click(screen.getByRole("button", { name: "Hide pickup details" }));
     expect(screen.queryByText("Demo Logistics Partner (synthetic)")).toBeNull();
 
-    // Next action: back to the timeline view, then to the help flow
     await user.click(screen.getByRole("button", { name: "Back to timeline" }));
-    expect(screen.getByRole("list", { name: "Return progress" })).toBeTruthy();
     await user.click(screen.getByRole("button", { name: "Get help with this return" }));
 
-    // Screen 4: help, with details carried over from the order
+    // Help: details carried over, message prefilled and editable
     expect(screen.getByRole("heading", { level: 2, name: "Get help with this return" })).toBeTruthy();
     expect(screen.getByText(ORDER_ID)).toBeTruthy();
     expect(screen.getByText("Pickup scheduled")).toBeTruthy();
-    const note = screen.getByLabelText(/Anything else we should know/);
-    await user.type(note, "The rider took the parcel at the gate.");
-    await user.click(screen.getByRole("button", { name: "Prepare issue summary" }));
+    expect(messageBox().value).toBe(defaultSupportMessage);
+    await user.clear(messageBox());
+    await user.type(messageBox(), "The rider took the parcel at the gate.");
+    await user.click(screen.getByRole("button", { name: "Review summary" }));
 
-    // Screen 5: confirmation, simulated and honest about what was not sent
+    // Review: read-only, and nothing has been confirmed yet
+    expect(screen.getByRole("heading", { level: 2, name: "Review your support request" })).toBeTruthy();
+    expect(screen.getByText("The rider took the parcel at the gate.")).toBeTruthy();
+    expect(screen.queryByRole("heading", { name: "Your return issue summary is ready." })).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Confirm and prepare summary" }));
+
+    // Confirmation: explicit that this is a prototype and nothing was sent
     expect(screen.getByRole("heading", { level: 2, name: "Your return issue summary is ready." })).toBeTruthy();
-    expect(screen.getByText(/Nothing has been sent/)).toBeTruthy();
+    expect(screen.getByText(/nothing has been sent/)).toBeTruthy();
     expect(screen.getByText("The rider took the parcel at the gate.")).toBeTruthy();
     expect(screen.queryByText(/ticket|reference number|refund/i)).toBeNull();
 
     // Back navigation returns to the screen that was actually shown before
     await user.click(screen.getByRole("button", { name: "Go back" }));
-    expect(screen.getByRole("heading", { level: 2, name: "Get help with this return" })).toBeTruthy();
-    expect((screen.getByLabelText(/Anything else we should know/) as HTMLTextAreaElement).value).toBe(
-      "The rider took the parcel at the gate.",
-    );
+    expect(screen.getByRole("heading", { level: 2, name: "Review your support request" })).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Edit message" }));
+    expect(messageBox().value).toBe("The rider took the parcel at the gate.");
     await user.click(screen.getByRole("button", { name: "Go back" }));
     expect(screen.getByRole("heading", { level: 1, name: "Return details" })).toBeTruthy();
     await user.click(screen.getByRole("button", { name: "Go back" }));
@@ -81,39 +95,38 @@ describe("ReturnProof concept: the primary journey", () => {
     fetchSpy.mockRestore();
   });
 
-  it("returns to the order screen and clears every field when the demo is restarted", async () => {
+  it("returns to the order screen and resets the message when the demo is restarted", async () => {
     const user = userEvent.setup();
     render(<ConceptApp />);
-    await user.click(screen.getByRole("button", { name: "View return details" }));
-    await user.click(screen.getByRole("button", { name: "Get help with this return" }));
-    await user.type(screen.getByLabelText(/Anything else we should know/), "Some text");
-    await user.click(screen.getByRole("button", { name: "Prepare issue summary" }));
+    await openHelp(user);
+    await user.clear(messageBox());
+    await user.type(messageBox(), "Some other text");
 
     await user.click(screen.getByRole("button", { name: "Restart demo" }));
     expect(screen.getByRole("heading", { level: 1, name: "Order details" })).toBeTruthy();
 
-    await user.click(screen.getByRole("button", { name: "View return details" }));
-    await user.click(screen.getByRole("button", { name: "Get help with this return" }));
-    expect((screen.getByLabelText(/Anything else we should know/) as HTMLTextAreaElement).value).toBe("");
+    await openHelp(user);
+    expect(messageBox().value).toBe(defaultSupportMessage);
   });
 
-  it("keeps the summary on the confirmation screen and offers two ways back", async () => {
+  it("offers two ways back from the confirmation screen", async () => {
     const user = userEvent.setup();
     render(<ConceptApp />);
-    await user.click(screen.getByRole("button", { name: "View return details" }));
-    await user.click(screen.getByRole("button", { name: "Get help with this return" }));
-    await user.click(screen.getByRole("button", { name: "Prepare issue summary" }));
+    await openHelp(user);
+    await user.click(screen.getByRole("button", { name: "Review summary" }));
+    await user.click(screen.getByRole("button", { name: "Confirm and prepare summary" }));
 
     await user.click(screen.getByRole("button", { name: "Back to return details" }));
     expect(screen.getByRole("heading", { level: 1, name: "Return details" })).toBeTruthy();
 
     await user.click(screen.getByRole("button", { name: "Get help with this return" }));
-    await user.click(screen.getByRole("button", { name: "Prepare issue summary" }));
+    await user.click(screen.getByRole("button", { name: "Review summary" }));
+    await user.click(screen.getByRole("button", { name: "Confirm and prepare summary" }));
     await user.click(screen.getByRole("button", { name: "Back to order details" }));
     expect(screen.getByRole("heading", { level: 1, name: "Order details" })).toBeTruthy();
   });
 
-  it("never shows engineering terms, conclusions the data cannot support, or external images", async () => {
+  it("never shows engineering terms, unsupported conclusions, or external images", async () => {
     const user = userEvent.setup();
     render(<ConceptApp />);
     const texts: string[] = [allScreenText()];
@@ -127,7 +140,9 @@ describe("ReturnProof concept: the primary journey", () => {
     await user.click(screen.getByRole("button", { name: "Back to timeline" }));
     await user.click(screen.getByRole("button", { name: "Get help with this return" }));
     texts.push(allScreenText());
-    await user.click(screen.getByRole("button", { name: "Prepare issue summary" }));
+    await user.click(screen.getByRole("button", { name: "Review summary" }));
+    texts.push(allScreenText());
+    await user.click(screen.getByRole("button", { name: "Confirm and prepare summary" }));
     texts.push(allScreenText());
 
     for (const text of texts) {
@@ -143,6 +158,40 @@ describe("ReturnProof concept: the primary journey", () => {
     for (const button of buttons) {
       expect((button.textContent ?? "").trim().length > 0 || button.getAttribute("aria-label")).toBeTruthy();
     }
+  });
+});
+
+describe("support request and explanation", () => {
+  it("explains the pickup in three parts, with the next step in the customer's own terms", async () => {
+    const user = userEvent.setup();
+    render(<ConceptApp />);
+    await user.click(screen.getByRole("button", { name: "View return details" }));
+    await user.click(screen.getByRole("button", { name: "Pickup details" }));
+
+    expect(screen.getByRole("heading", { level: 3, name: "What we know" })).toBeTruthy();
+    expect(screen.getByRole("heading", { level: 3, name: "What remains unconfirmed" })).toBeTruthy();
+    expect(screen.getByRole("heading", { level: 3, name: "What you can do next" })).toBeTruthy();
+    expect(screen.getByText(/Prepare a support request that explains the mismatch/)).toBeTruthy();
+  });
+
+  it("does not allow review of an empty message, and says what to do", async () => {
+    const user = userEvent.setup();
+    render(<ConceptApp />);
+    await openHelp(user);
+
+    await user.clear(messageBox());
+    expect((screen.getByRole("button", { name: "Review summary" }) as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.getByText("Add a message to continue.")).toBeTruthy();
+
+    await user.type(messageBox(), "Please help");
+    expect((screen.getByRole("button", { name: "Review summary" }) as HTMLButtonElement).disabled).toBe(false);
+    expect(screen.queryByText("Add a message to continue.")).toBeNull();
+  });
+
+  it("starts the support message with the suggested sentence", () => {
+    expect(defaultSupportMessage).toBe(
+      "I handed over my return, but my order still shows Pickup Pending. Please help me verify the pickup status.",
+    );
   });
 });
 
@@ -179,6 +228,6 @@ describe("keyboard access", () => {
     await user.keyboard("{Enter}");
     expect(screen.getByRole("heading", { level: 2, name: "Get help with this return" })).toBeTruthy();
 
-    await tabThroughAll(user); // help screen, including the text field
+    await tabThroughAll(user); // help screen, including the message field
   });
 });

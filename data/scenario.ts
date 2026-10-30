@@ -31,6 +31,10 @@ export const pickup = {
 
 // What the app currently shows. The scenario: the customer says the parcel was handed over,
 // but no pickup activity has been recorded yet, so the status has not moved.
+// The customer-facing sentence the help request opens with. The customer may edit it before reviewing.
+export const defaultSupportMessage =
+  "I handed over my return, but my order still shows Pickup Pending. Please help me verify the pickup status.";
+
 export const timeline: TimelineStep[] = [
   { id: "requested", title: "Return requested", detail: "20 Oct 2026", state: "done" },
   { id: "scheduled", title: "Pickup scheduled", detail: "24 Oct 2026, 10 AM to 2 PM", state: "done" },

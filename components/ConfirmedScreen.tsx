@@ -2,12 +2,12 @@ import { issueSummaryRows } from "../data/scenario";
 import { Button, SummaryRows, TopBar } from "./Ui";
 
 export function ConfirmedScreen({
-  note,
+  message,
   onBack,
   onBackToOrder,
   onBackToReturn,
 }: {
-  note: string;
+  message: string;
   onBack: () => void;
   onBackToOrder: () => void;
   onBackToReturn: () => void;
@@ -24,10 +24,10 @@ export function ConfirmedScreen({
         </div>
         <h2>Your return issue summary is ready.</h2>
         <p>
-          This prototype has prepared the details for a support conversation. Nothing has been sent, and no support request
-          has been created.
+          This is a prototype. The details have been prepared for a support conversation, but nothing has been sent, and no
+          support request has been submitted.
         </p>
-        <SummaryRows rows={[...issueSummaryRows(), { label: "Your note", value: note.trim() || "None added" }]} />
+        <SummaryRows rows={[...issueSummaryRows(), { label: "Your message", value: message.trim() || "None added" }]} />
       </section>
 
       <div className="actions">

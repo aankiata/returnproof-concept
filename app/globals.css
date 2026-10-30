@@ -203,6 +203,19 @@ textarea {
   background: #fff;
 }
 
+.message-text {
+  white-space: pre-wrap;
+  background: var(--lavender);
+  border-radius: 12px;
+  padding: 12px;
+  margin: 0;
+  font-size: 15px;
+}
+
+.helper { color: var(--muted); font-size: 13px; margin-top: 6px; }
+
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
 .success-mark {
   width: 44px;
   height: 44px;

@@ -129,7 +129,7 @@ You should see the order details screen with the banner at the top. Go through t
 1. **View return details** → look at the timeline.
 2. **Pickup details** → read the explanation.
 3. **Show pickup details** → expands the extra information.
-4. **Get help with this return** → add an optional note → **Prepare issue summary**.
+4. **Get help with this return** → edit the pre-filled message if you like → **Review summary** → **Confirm and prepare summary**.
 5. **Go back** buttons move back one screen. **Restart demo** in the banner clears everything.
 
 Leave the server running while you work. Changes you save in VS Code appear in the browser automatically.
@@ -159,7 +159,7 @@ your copy is older than the version described here.
 ### 5.3 Run the checks
 ```bash
 npm run typecheck    # strict TypeScript: should finish with no output
-npm test             # five journey tests: should end with "5 passed"
+npm test             # nine tests: should end with "9 passed"
 ```
 
 ### 5.4 Optional: run the production build locally
@@ -363,7 +363,7 @@ Every change you make is published by repeating the same steps:
 cd returnproof-concept
 npm install
 npm run dev                 # http://localhost:3100
-npm test                    # 5 journey tests
+npm test                    # 9 journey and support tests
 npm run typecheck
 
 # First publish (after creating an empty GitHub repository)

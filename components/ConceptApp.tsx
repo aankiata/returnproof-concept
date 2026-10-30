@@ -2,12 +2,14 @@
 
 import type { ReactElement } from "react";
 import { useState } from "react";
+import { defaultSupportMessage } from "../data/scenario";
 import { ConfirmedScreen } from "./ConfirmedScreen";
 import { HelpScreen } from "./HelpScreen";
 import { OrderScreen } from "./OrderScreen";
 import { ReturnScreen } from "./ReturnScreen";
+import { ReviewScreen } from "./ReviewScreen";
 
-type Screen = "order" | "return" | "help" | "confirmed";
+type Screen = "order" | "return" | "help" | "review" | "confirmed";
 
 /**
  * The whole prototype. Navigation is a small stack held in React state, so "back" always returns to the screen
@@ -15,14 +17,14 @@ type Screen = "order" | "return" | "help" | "confirmed";
  */
 export function ConceptApp() {
   const [stack, setStack] = useState<Screen[]>(["order"]);
-  const [note, setNote] = useState("");
+  const [message, setMessage] = useState(defaultSupportMessage);
   const current = stack[stack.length - 1];
 
   const push = (screen: Screen) => setStack((previous) => [...previous, screen]);
   const pop = () => setStack((previous) => (previous.length > 1 ? previous.slice(0, -1) : previous));
   const resetTo = (screens: Screen[]) => setStack(screens);
   const restart = () => {
-    setNote("");
+    setMessage(defaultSupportMessage);
     setStack(["order"]);
   };
 
@@ -35,12 +37,15 @@ export function ConceptApp() {
       body = <ReturnScreen onBack={pop} onGetHelp={() => push("help")} />;
       break;
     case "help":
-      body = <HelpScreen note={note} onNoteChange={setNote} onBack={pop} onPrepare={() => push("confirmed")} />;
+      body = <HelpScreen message={message} onMessageChange={setMessage} onBack={pop} onReview={() => push("review")} />;
+      break;
+    case "review":
+      body = <ReviewScreen message={message} onBack={pop} onEdit={pop} onConfirm={() => push("confirmed")} />;
       break;
     case "confirmed":
       body = (
         <ConfirmedScreen
-          note={note}
+          message={message}
           onBack={pop}
           onBackToOrder={() => resetTo(["order"])}
           onBackToReturn={() => resetTo(["order", "return"])}

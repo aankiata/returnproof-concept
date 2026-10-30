@@ -40,7 +40,7 @@ It does not say the pickup partner failed, and it does not say the customer is r
    partner, the window and the customer's own handover note.
 4. **Next best action.** Two options: *View pickup details* and *Get help with this return*.
 5. **Help.** The issue summary is pre-filled with the order ID, product, dates, the handover note and the current status. The customer
-   may add an optional note.
+   can edit the message before reviewing it. A review screen then shows everything before anything is confirmed.
 6. **Confirmation.** "Your return issue summary is ready." Nothing has been sent. The customer can return to the order or to the return details.
 
 Restarting the demonstration returns to the order screen and clears every field.
@@ -61,7 +61,7 @@ Restarting the demonstration returns to the order screen and clears every field.
 | Order, product, seller, prices, dates, pickup partner | Invented, fixed data in `data/scenario.ts` |
 | Pickup status | A fixed scenario ("pickup pending, awaiting confirmation"). No status source, no courier data, no tracking |
 | Customer's handover note | Fixed text standing in for what a customer would enter |
-| Help request | Local state only. "Prepare issue summary" does not contact anyone and creates no ticket |
+| Help request | Local state only. "Confirm and prepare summary" does not contact anyone and creates no ticket |
 | Confirmation | A summary screen. No reference number, resolution time, refund or guarantee is shown |
 | Imagery | Placeholder artwork drawn as SVG. No Meesho photographs, logo or brand assets are used |
 | Colours | Approximated by eye from screenshots of meesho.com for visual direction only. Not brand-verified |
@@ -107,7 +107,7 @@ Restarting the demonstration returns to the order screen and clears every field.
 | 0:15–0:40 | "The return is in progress, with the pickup pending. Let's look at what the customer sees next." | Tap *View return details*. Point at the timeline, and at *Awaiting confirmation*. |
 | 0:40–1:05 | "The explanation says plainly what has happened and what has not been confirmed. It does not say the partner failed, or that the customer is right." | Tap *Pickup details*. Read the headline and the "What we have" and "Still awaiting confirmation" lists. |
 | 1:05–1:25 | "The details are there when someone wants them, and they say what a pending status does not mean." | Expand *Show pickup details*. Read "What this does and doesn't tell us". |
-| 1:25–1:45 | "If the status stays unchanged, the customer can ask for help without retyping anything." | Tap *Get help with this return*. Show the pre-filled summary. Type a short note. Tap *Prepare issue summary*. |
+| 1:25–1:45 | "If the status stays unchanged, the customer can ask for help without retyping anything." | Tap *Get help with this return*. Show the pre-filled message. Tap *Review summary*, then *Confirm and prepare summary*. |
 | 1:45–2:00 | "Nothing has been sent. This is a prototype. What would have to be true for this to help is the list on screen: how often it happens, whether people understand it, and whether it changes what they do." | Read the confirmation. Tap *Back to order details*, then *Restart demo*. |
 
 ## 10. Design notes
@@ -122,7 +122,7 @@ Restarting the demonstration returns to the order screen and clears every field.
 | Check | Result |
 |---|---|
 | Strict TypeScript type-check | Passed |
-| Journey test (drives the real components through every screen, back navigation, restart, and the language and no-network rules) | 5 of 5 passed |
+| Journey test (drives the real components through every screen, back navigation, restart, and the language and no-network rules) | 9 of 9 passed (including the review step and empty-message rule) |
 | Production build | Compiled successfully |
 | Served page (HTTP 200, synthetic content and non-affiliation statement present, no API or backend references) | Verified with a live server |
 | Network use in the prototype's own source | None found |
